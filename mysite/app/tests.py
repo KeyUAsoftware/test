@@ -2,11 +2,23 @@
 from __future__ import unicode_literals
 
 from django.test import TestCase
-
 from django.core.urlresolvers import reverse
+
+from accounts.models import User
 
 
 class OrderTest(TestCase):
+
+    def setUp(self):
+        super(OrderTest, self).setUp()
+
+        self.admin_user = User.objects.create(
+            username='admin',
+            is_superuser=True,
+            is_staff=True,
+        )
+        self.admin_user.set_password('1234567')
+        self.admin_user.save()
 
     def test_orders(self):
         """
@@ -19,6 +31,10 @@ class OrderTest(TestCase):
             'status': '',
         }
 
+        response = self.client.post(path=reverse('orders'), data=data, format='json')
+        self.assertEqual(response.status_code, 403)
+
+        self.client.login(username='admin', password='1234567')
         response = self.client.post(path=reverse('orders'), data=data, format='json')
         self.assertEqual(response.status_code, 400)
 
